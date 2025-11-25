@@ -1,14 +1,25 @@
 ﻿using Core.Entities.Concrete;
 using Entities.Concrete;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace DataAccess.Concrete.EntityFramework.Contexts
 {
     public class NorthwindContext : DbContext
     {
+        public NorthwindContext(DbContextOptions<NorthwindContext> options) : base(options)
+        {
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Northwind;Trusted_Connection=true");
+            // Configuration is handled via dependency injection in Startup.cs
+            // This allows for flexible connection string configuration
+            if (!optionsBuilder.IsConfigured)
+            {
+                // Fallback connection string for development/testing
+                optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Northwind;Trusted_Connection=true");
+            }
         }
 
         public DbSet<Product> Products { get; set; }

@@ -26,10 +26,19 @@ namespace WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            
+
+            // Configure database connection
+            services.AddDbContext<DataAccess.Concrete.EntityFramework.Contexts.NorthwindContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            // Configure CORS with origins from appsettings.json
+            var corsOrigins = Configuration.GetSection("CorsOrigins").Get<string[]>();
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowOrigin", builder => builder.WithOrigins("http://localhost:3000"));
+                options.AddPolicy("AllowOrigin", builder => 
+                    builder.WithOrigins(corsOrigins)
+                           .AllowAnyHeader()
+                           .AllowAnyMethod());
             });
 
             var tokenOptions = Configuration.GetSection("TokenOptions").Get<TokenOptions>();
@@ -64,7 +73,8 @@ namespace WebAPI
 
             app.ConfigureCustomExceptionMiddleware();
 
-            app.UseCors(builder => builder.WithOrigins("http://localhost:3000").AllowAnyHeader());
+            // Use the configured CORS policy
+            app.UseCors("AllowOrigin");
 
             app.UseHttpsRedirection();
 
